@@ -1,6 +1,5 @@
 <template lang="html">
   <div class="search-wrap">
-    <!-- <p>找到所有能幫助你的資訊</p> -->
     <div class="search-container">
       <b-form-input v-model="selectedGroup.searchInput"
                   type="text"
@@ -67,8 +66,9 @@ export default {
     searchIns () {
       let opt2 = this.options2.map(obj => obj.value)
       console.log(this.selectedGroup)
-      this.$bus.$emit('cityArea', {selectedGroup: this.selectedGroup, opt2: opt2})
       this.$router.push('/')
+      // Vue.localStorage.set('selectedGroup', JSON.stringify(this.selectedGroup))
+      this.$bus.$emit('cityArea', {selectedGroup: this.selectedGroup, opt2: opt2})
     },
     getCity () {
       // axiox

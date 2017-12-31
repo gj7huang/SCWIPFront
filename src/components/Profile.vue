@@ -1,13 +1,20 @@
 <template lang="html">
   <div class="profile-wrap">
-    <p>{{ profile }}</p>
+    <div class="pic">
+      <img src="../assets/delight.svg" alt="">
+    </div>
+    <div class="info">
+      <p>{{ profile.username }}</p>
+      <p>{{ profile.email }}</p>
+      <p>你好</p>
+    </div>
   </div>
 </template>
 
 <script>
 import Vue from 'vue'
 import { Button } from 'bootstrap-vue/es/components'
-import {axios} from '@/lib'
+// import {axios} from '@/lib'
 
 Vue.use(Button)
 
@@ -29,22 +36,7 @@ export default {
     // console.log(this.profile)
 
     // Favorite profile
-    this.getFavorite()
-  },
-  method: {
-    getFavorite () {
-      axios({
-        method: 'get',
-        url: `/api/list-favorite/${this.profile.pk}/`
-      })
-      .then(response => {
-        // JSON responses are automatically parsed.
-        this.favorite = response.data
-      })
-      .catch(e => {
-        this.errors.push(e)
-      })
-    }
+    // this.getFavorite()
   },
   // mounted () {
   //   const {id, name, email} = this.$bus.$data
@@ -65,5 +57,21 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-
+.profile-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  .info {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+  .pic {
+    border-radius: 50px;
+    width: 100px;
+    height: 200px;
+  }
+}
 </style>

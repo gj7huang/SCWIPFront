@@ -6,7 +6,7 @@
           <div class="close" @click="$emit('close')">x</div>
           <div class="modal-header" >
             <slot name="header"></slot>
-            <b-form-select v-model="selectedCap" class="mb-3 search-box" :options="insCap">
+            <b-form-select v-model="selectedCap" class="mb-3 search-box" :options="insCap" v-bind:class="{'error-box ': selectedCapFrom}">
               <template slot="first">
                 <!-- this slot appears above the options from 'options' prop -->
                 <option :value="null" disabled>--Select Cap--</option>
@@ -19,9 +19,10 @@
             <b-form-group id="exampleInputGroup"
                           class="input-box"
                           description="">
-              <b-form-input id="inputFormatter"
+              <b-form-input id="inputFormatterC"
                             v-model="title"
                             type="text"
+                            v-bind:class="{'error-box ': nullTitle}"
                             placeholder="Enter your title"
                             required
                             :formatter="format"></b-form-input>
@@ -31,6 +32,7 @@
                                 v-model="text"
                                 placeholder="Enter something"
                                 :rows="3"
+                                v-bind:class="{'error-box': nullText}"
                                 :max-rows="6">
                </b-form-textarea>
                <!-- <pre class="mt-3">{{ text }}</pre> -->
@@ -39,6 +41,7 @@
           <div class="modal-footer">
             <slot name="footer">
             </slot>
+            <p class="error">{{error}}</p>
             <b-button class="submit-btn" @click="comment">提交</b-button>
           </div>
         </div>
@@ -64,8 +67,12 @@ export default {
       title: '',
       profile: {},
       errors: [],
-      infn: [],
-      selectedCap: ''
+      info: [],
+      selectedCap: '',
+      error: '',
+      nullTitle: false,
+      nullText: false,
+      selectedCapFrom: false
     }
   },
   props: {
@@ -94,26 +101,44 @@ export default {
     })
   },
   methods: {
+    format (value, event) {
+      return value.toLowerCase()
+    },
     comment () {
-      console.log(this.userPk)
-      if (this.text && this.title) {
+      this.error = ''
+
+      if (this.text && this.title && this.selectedCap) {
         axios({
           method: 'post',
           url: `/api/add-comment/${this.selectedCap}/`,
           data: {
             com_con: this.text,
             com_title: this.title,
-            mem: this.profile,
+            mem: this.profile.pk,
             ins: this.selectedCap
           }
         })
         .then(response => {
           // JSON responses are automatically parsed.
           this.info = response.data
+          this.text = ''
+          this.title = ''
+          this.selectedCap = ''
+          this.error = ''
+          this.nullTitle = false
+          this.nullText = false
+          this.$bus.$emit('sucessCommit', {sucessCommit: false})
         })
         .catch(e => {
-          this.errors.push(e)
+          // this.errors.push(e)
+          // this.error = '請先登入'
+          // this.nullText = true
+          this.nullText = false
+          this.nullTitle = false
+          this.error = '請先登入'
         })
+      } else {
+        this.error = '不得為空'
       }
     }
   },
@@ -127,6 +152,18 @@ export default {
 // #textarea1 {
 //   width: 300px;
 // }
+.error-box {
+  border-color: red;
+}
+.error {
+  font-size: 12px;
+  color: red;
+}
+
+.search-box {
+  width: 200px;
+}
+
 .subnit-btn {
   background-color: RGBA(71, 183, 132, 1.00);
   border-radius: 10%;

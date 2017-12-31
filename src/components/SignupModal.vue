@@ -19,6 +19,7 @@
                 <b-form-input id="inputFormatterN"
                               type="text"
                               v-model="signout.username"
+                              v-bind:class="{ 'error-box': nameHasError }"
                               required
                               placeholder="Enter your Name"
                               :formatter="format"></b-form-input>
@@ -29,6 +30,7 @@
                             description="">
                 <b-form-input id="inputFormatterE"
                               type="email"
+                              v-bind:class="{ 'error-box': emailHasError }"
                               v-model="signout.email"
                               required
                               placeholder="Enter your Email"
@@ -41,6 +43,7 @@
                             description="">
                 <b-form-input id="inputLazy1"
                               type="password"
+                              v-bind:class="{ 'error-box': pwd1HasError }"
                               v-model="signout.password1"
                               required
                               placeholder="Enter your Password"
@@ -54,6 +57,7 @@
                             valid-feedback="checkPwdAg">
                 <b-form-input id="inputLazy2"
                               type="password"
+                              v-bind:class="{ 'error-box': pwd2HasError }"
                               v-model="signout.password2"
                               required
                               placeholder="Enter your Password Again"
@@ -112,7 +116,11 @@ export default {
         password2: ''
       },
       errors: '',
-      profile: {}
+      profile: {},
+      nameHasError: false,
+      emailHasError: false,
+      pwd1HasError: false,
+      pwd2HasError: false
     }
   },
   methods: {
@@ -122,24 +130,55 @@ export default {
     register () {
       // axios
       // let profile = {}
-      console.log(this.signout)
-      axios({
-        method: 'post',
-        url: '/api/register/',
-        data: this.signout
-      })
-      .then(response => {
-        // JSON responses are automatically parsed.
-        this.profile = response.data
-        this.$bus.$emit('profile', this.profile)
-        // this.$bus.$emit('registerSuccess', { success: true })
-      })
-      .catch(e => {
-        console.log(e)
-        // this.errors = '所有欄位不得為空'
-        // this.$bus.$emit('registerSuccess', { success: false })
-        this.login()
-      })
+      if (!(this.signout.username && this.signout.email && this.signout.password1 && this.signout.password2)) {
+        if (!this.signout.username) {
+          this.nameHasError = true
+        }
+        if (!this.signout.email) {
+          this.emailHasError = true
+        }
+        if (!this.signout.password1) {
+          this.pwd1HasError = true
+        }
+        if (!this.signout.password2) {
+          this.pwd2HasError = true
+        }
+        this.errors = '欄位不得為空'
+      } else if (!(this.signout.password1.length > 7) && (this.signout.password2.length > 7)) {
+        this.pwd1HasError = true
+        this.pwd2HasError = true
+        this.errors = '密碼長度大於8字元'
+      } else if (this.signout.password1 !== this.signout.password2) {
+        this.pwd1HasError = true
+        this.pwd2HasError = true
+        this.errors = '2組密碼不合'
+      } else {
+        axios({
+          method: 'post',
+          url: '/api/register/',
+          data: this.signout
+        })
+        .then(response => {
+          // JSON responses are automatically parsed.
+          this.profile = response.data
+          this.$bus.$emit('profile', this.profile)
+          this.login()
+          // this.$bus.$emit('registerSuccess', { success: true })
+          this.pwd1HasError = false
+          this.pwd2HasError = false
+          this.emailHasError = false
+          this.nameHasError = false
+        })
+        .catch(e => {
+          console.log(e)
+          this.errors = '錯誤請從新輸入'
+          this.signout.username = ''
+          this.signout.email = ''
+          this.signout.password1 = ''
+          this.signout.password2 = ''
+          // this.$bus.$emit('registerSuccess', { success: false })
+        })
+      }
     },
     login () {
       axios({
@@ -163,7 +202,6 @@ export default {
         this.errors = e
         console.log(this.errors)
         this.$bus.$emit('registerSuccess', { success: true })
-        this.errors = '錯誤請再輸入一次'
       })
     },
     checkPwdAg () {
@@ -194,7 +232,9 @@ export default {
   font-size: 12px;
   color: red;
 }
-
+.error-box {
+  border-color: red;
+}
 .modal-mask {
   position: fixed;
   z-index: 9998;

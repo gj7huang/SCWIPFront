@@ -32,7 +32,7 @@
                               type="email"
                               v-model="signin.email"
                               required
-                              placeholder="Enter your email"
+                              placeholder="Enter your email(option)"
                               :formatter="format"></b-form-input>
               </b-form-group>
               <!-- <p>Value: {{ signin.email }}</p> -->
@@ -68,10 +68,12 @@ import Vue from 'vue'
 import { FormGroup, FormInput, Button } from 'bootstrap-vue/es/components'
 import {axios} from '@/lib'
 // import axios from 'axios'
+// import VueLocalStorage from 'vue-localstorage'
 
 Vue.use(FormGroup)
 Vue.use(FormInput)
 Vue.use(Button)
+// Vue.use(VueLocalStorage)
 
 export default {
   props: {
@@ -119,6 +121,10 @@ export default {
           // JSON responses are automatically parsed.
           this.profile = response.data.user
           console.log(this.profile)
+          Vue.localStorage.set('profile', JSON.stringify(this.profile))
+          // let p = JSON.parse(Vue.localStorage.get('profile'))
+          // console.log(p)
+
           this.$bus.$emit('profile', {profile: this.profile})
           this.$bus.$emit('loginSuccess', { success: true })
         })
@@ -127,6 +133,9 @@ export default {
           console.log(this.errors)
           this.$bus.$emit('loginSuccess', { success: false })
           this.errors = '錯誤請再輸入一次'
+          this.signin.username = ''
+          this.signin.email = ''
+          this.signin.password = ''
         })
       } else if (this.signin.username.length && !this.signin.password.length) {
         this.passwordHasError = true
@@ -140,6 +149,7 @@ export default {
       }
     },
     login () {
+      // errors = ''
       // profile
       this.getProfile()
     }

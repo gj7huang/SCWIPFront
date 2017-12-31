@@ -12,22 +12,20 @@
         </router-link>
       </b-navbar-nav>
       <b-navbar-nav class="ml-auto menu" v-show="!isLogin">
-        <b-nav-item class="login" @click="showInModal = true">{{ signInUp[0].signName }}</b-nav-item>
-        <b-nav-item class="logup" @click="showUpModal = true">{{ signInUp[1].signName }}</b-nav-item>
+        <b-nav-item class="login" @click="login">{{ signInUp[0].signName }}</b-nav-item>
+        <b-nav-item class="logup" @click="signup">{{ signInUp[1].signName }}</b-nav-item>
       </b-navbar-nav>
       <b-navbar-nav class="ml-auto loginFont" v-show="isLogin">
         <router-link :to="{ name: 'Profile'}" tag="li">
-          <b-nav-item>
-            <!-- <img :src="profilePicture" alt="profile" class="profile-picture" width="25" height="25"/> -->
+          <b-nav-item class="proflie-box">
             {{profile.username}}
           </b-nav-item>
         </router-link>
         <b-nav-item @click="logout" class="logout">Logout</b-nav-item>
-
       </b-navbar-nav>
     </b-collapse>
 
-    <LoginModal v-show="showInModal" @close="showInModal = false">
+    <LoginModal v-if="showInModal" @close="showInModal = false">
       <h3 slot="header">{{signInUp[0].signAlias}}</h3>
       <div class="body" slot="body">
         <!-- <button type="button" class="fb-signin-button" @click="login">使用 Facebook 帳號登入</button> -->
@@ -38,7 +36,7 @@
       </div>
     </LoginModal>
 
-    <SignupModal v-show="showUpModal" @close="showUpModal = false">
+    <SignupModal v-if="showUpModal" @close="showUpModal = false">
       <h3 slot="header">{{signInUp[1].signAlias}}</h3>
       <div class="body" slot="body">
         <!-- <button type="button" class="fb-signin-button" @click="login">使用 Facebook 帳號註冊</button> -->
@@ -95,11 +93,6 @@ export default {
   components: {
     LoginModal, SignupModal
   },
-  computed: {
-    profilePicture () {
-      // return (this.profile.id) ? `https://graph.facebook.com/${this.profile.id}/picture?width=300` : `../assets/logo.png`
-    }
-  },
   created () {
     // 找 profile
     // let vm = this
@@ -126,12 +119,21 @@ export default {
     })
   },
   methods: {
+    login () {
+      this.$router.push('/profile')
+      this.showInModal = true
+    },
+    signup () {
+      this.$router.push('/profile')
+      this.showUpModal = true
+    },
     logout () {
       // let vm = this
       // vm.profile = {}
       // location.reload()
       this.isLogin = false
-      this.$bus.$emit('profile', {profile: {}})
+      this.$bus.$off('profile')
+      this.$localStorage.remove('profile')
       this.profile = {}
       console.log('logup')
       this.$router.push({ path: '/' })
@@ -163,10 +165,14 @@ export default {
 //     background-color: RGBA(50, 80, 150, 1.00);
 //   }
 // }
-
-.profile-picture {
-  border-radius: 50%;
-}
+// .profile-picture {
+//   border-radius: 50%;
+//   height: 20px;
+//   width: 20px;
+//   background-image: url('../assets/user.svg');
+//   background-repeat: no-repeat;
+//   background-position: center;
+// }
 .logo-img {
   border-radius: 50%;
 }
@@ -184,6 +190,10 @@ export default {
   }
   .loginFont {
     font-size: 14px;
+    .proflie-box {
+      display: flex;
+
+    }
   }
 }
 .changeModal {

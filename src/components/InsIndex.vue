@@ -28,12 +28,16 @@
           <td>{{ insInfo.address }}</td>
         </tr>
         <tr>
+          <td>AQI指數</td>
+          <td>{{ insAqi }}</td>
+        </tr>
+        <tr>
           <td>收容類型</td>
           <td>
             <a v-for="c in insCap">
               <a>{{c.text}}</a>
               <!-- <div v-bind:class="" id="heart"></div> -->
-              <a>加入最愛 ♥ </a>
+              <a>♥ </a>
             </a>
           </td>
         </tr>
@@ -42,9 +46,11 @@
     <!-- {{insInfo}} -->
 
     <b-button class="comment-btn" @click="showModal = true">留言</b-button>
-    <p>{{ error }}</p>
-    <CommentModal v-if="showModal && isLogin" @close="showModal = false" :insCap="insCap">
-      <h3 slot="header">回饋</h3>
+    <!-- <b-button class="comment-btn" @click="updateCom">更新留言</b-button> -->
+
+    <!-- <p>{{ error }}</p> -->
+    <CommentModal v-show="showModal" @close="showModal = false" :insCap="insCap">
+      <h3 slot="header">意見回饋</h3>
       <div class="body" slot="body">
       <!-- <button type="button" class="fb-signin-button" @click="login">使用 Facebook 帳號登入</button> -->
       </div>
@@ -52,6 +58,7 @@
     </CommentModal>
 
     <div class="comment-wrap">
+
       <div class="comment" v-for="c in insCom">
         <div class="item">{{c.com_created}}</div>
         <div class="item">{{c.com_title}}</div>
@@ -78,40 +85,26 @@ export default {
       errors: [],
       error: '',
       isLogin: false,
-      showModal: false
+      showModal: false,
+      insAqi: '',
+      conmandTitle: ['新增時間', 'Title', 'Command'],
+      profile: {}
     }
   },
-  method: {
-    addFav () {
-      axios({
-        method: 'post',
-        url: `/api/add-favorite/${this.$route.params.id}/`,
-        data: {}
-      })
-      .then(response => {
-        // this.insInfo = response.data[0]
-        console.log('成功加入最愛')
-      })
-      .catch(e => {
-        this.errors.push(e)
-      })
-    }
-  },
-  // computed: {
-  //   error () {
-  //
-  //   }
-  // },
   created () {
     this.$bus.$on('profile', event => {
-      if (event.profile.pk) {
+      if (event.profile) {
+        this.profile = event.profile
         this.isLogin = true
-        console.log(event.profile.pk)
+        console.log(event.profile)
         this.error = ''
       } else {
         this.isLogin = false
         this.error = '請先登入'
       }
+    })
+    this.$bus.$on('sucessCommit', event => {
+      this.showModal = event.sucessCommit
     })
     axios({
       method: 'get',
@@ -145,7 +138,19 @@ export default {
     })
     .then(response => {
       this.insCom = response.data
-      console.log(this.insCom)
+      // console.log(this.insCom)
+    })
+    .catch(e => {
+      this.errors.push(e)
+    })
+
+    axios({
+      method: 'get',
+      url: `/api/list-ins_aqi/${this.$route.params.id}/`
+    })
+    .then(response => {
+      this.insAqi = response.data[0].aqi_index
+      console.log(this.insAqi)
     })
     .catch(e => {
       this.errors.push(e)
@@ -157,10 +162,11 @@ export default {
 <style lang="scss" scoped>
 .ins-wrap {
   .insInfo {
-    width: 100%;
+    width: 70%;
     display: flex;
     flex-wrap: nowrap;
     flex-direction: column;
+    border: 1px solid #000;
   }
   .comment-wrap {
     width: 100%;
@@ -168,7 +174,12 @@ export default {
     flex-direction: column;
     .comment {
       display: flex;
-      justify-content: center;
+      justify-content: space-around;
+      // align-items: center;
+      // width: 500px;
+      border-bottom: 1px solid RGBA(71, 183, 132, 1.00);
+      margin: 5px 100px;
+
       .item {
         margin: 10px;
       }
@@ -181,9 +192,10 @@ export default {
 
 .comment-btn {
   background-color: RGBA(71, 183, 132, 1.00);
-  border-radius: 10%;
+  border-radius: 25px;
   border: none;
   margin-top: 20px;
+  width: 300px;
   &:hover {
     background-color: RGBA(100, 200, 150, 1.00);
   }
@@ -194,45 +206,52 @@ export default {
 .add {
   background: red;
 }
-#heart {
-  display: inline;
-  position: relative;
-  width: 100px;
-  height: 90px;
+
+@media(max-width: 768px) {
+  .insInfo {
+    width: 100%;
+  }
 }
-#heart:before,
-#heart:after {
-  position: absolute;
-  content: "";
-  left: 10px;
-  top: 0;
-  width: 10px;
-  height: 16px;
-  background: red;
-  -moz-border-radius: 50px 50px 0 0;
-  border-radius: 50px 50px 0 0;
-  -webkit-transform: rotate(-45deg);
-  -moz-transform: rotate(-45deg);
-  -ms-transform: rotate(-45deg);
-  -o-transform: rotate(-45deg);
-  transform: rotate(-45deg);
-  -webkit-transform-origin: 0 100%;
-  -moz-transform-origin: 0 100%;
-  -ms-transform-origin: 0 100%;
-  -o-transform-origin: 0 100%;
-  transform-origin: 0 100%;
-}
-#heart:after {
-  left: 0;
-  -webkit-transform: rotate(45deg);
-  -moz-transform: rotate(45deg);
-  -ms-transform: rotate(45deg);
-  -o-transform: rotate(45deg);
-  transform: rotate(45deg);
-  -webkit-transform-origin: 100% 100%;
-  -moz-transform-origin: 100% 100%;
-  -ms-transform-origin: 100% 100%;
-  -o-transform-origin: 100% 100%;
-  transform-origin :100% 100%;
-}
+
+// #heart {
+//   display: inline;
+//   position: relative;
+//   width: 100px;
+//   height: 90px;
+// }
+// #heart:before,
+// #heart:after {
+//   position: absolute;
+//   content: "";
+//   left: 10px;
+//   top: 0;
+//   width: 10px;
+//   height: 16px;
+//   background: red;
+//   -moz-border-radius: 50px 50px 0 0;
+//   border-radius: 50px 50px 0 0;
+//   -webkit-transform: rotate(-45deg);
+//   -moz-transform: rotate(-45deg);
+//   -ms-transform: rotate(-45deg);
+//   -o-transform: rotate(-45deg);
+//   transform: rotate(-45deg);
+//   -webkit-transform-origin: 0 100%;
+//   -moz-transform-origin: 0 100%;
+//   -ms-transform-origin: 0 100%;
+//   -o-transform-origin: 0 100%;
+//   transform-origin: 0 100%;
+// }
+// #heart:after {
+//   left: 0;
+//   -webkit-transform: rotate(45deg);
+//   -moz-transform: rotate(45deg);
+//   -ms-transform: rotate(45deg);
+//   -o-transform: rotate(45deg);
+//   transform: rotate(45deg);
+//   -webkit-transform-origin: 100% 100%;
+//   -moz-transform-origin: 100% 100%;
+//   -ms-transform-origin: 100% 100%;
+//   -o-transform-origin: 100% 100%;
+//   transform-origin :100% 100%;
+// }
 </style>
